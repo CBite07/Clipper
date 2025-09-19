@@ -65,3 +65,30 @@
       * **완화 전략:**
         1.  앱 내에 "본 앱은 기술적인 도구이며, 다운로드하는 콘텐츠에 대한 책임은 전적으로 사용자에게 있습니다"라는 내용의 면책 조항 명시.
         2.  저작권 보호(DRM)가 적용된 콘텐츠는 다운로드할 수 없음을 명확히 안내.
+
+---
+
+## 구현 개요 (Implementation Overview)
+
+Spotlight Downloader의 초기 구현은 Swift Package Manager 기반의 macOS 전용 SwiftUI 애플리케이션으로 구성되어 있습니다. 프로젝트를 Xcode에서 열면 SwiftUI App 구조를 이용해 메인 UI, 다운로드 큐 관리, 설정 화면을 모두 확인할 수 있습니다.
+
+### 주요 모듈
+
+| 모듈 | 설명 |
+| --- | --- |
+| `DownloadManager` | `yt-dlp`/`ffmpeg` 프로세스를 제어하며 다운로드 진행률 파싱, 큐 관리, 완료/실패 알림을 처리합니다. |
+| `PreferenceStore` | 사용자 기본 설정(저장 위치, 포맷 선호도 등)을 `UserDefaults`와 번들 JSON 기본값을 통해 관리합니다. |
+| `DownloadQueueViewModel` | 대기열/진행 중/완료 목록을 UI에 전달하고 Spotlight 또는 수동 입력으로부터 다운로드 요청을 처리합니다. |
+| `SpotlightBridge` | Spotlight File Provider 확장과의 통신을 위한 알림 브리지를 제공하여 URL을 앱으로 전달합니다. |
+| `NotificationManager` | macOS 사용자 알림 센터를 통해 다운로드 완료/실패 피드백을 제공합니다. |
+
+### 빌드 & 실행 방법
+
+1. 저장소를 클론한 뒤 `Clipper` 디렉터리를 Xcode 15 이상에서 엽니다.
+2. 필요 시 `yt-dlp`와 `ffmpeg` 실행 파일을 `Sources/ClipperApp/Resources` 디렉터리에 추가하거나 `DownloadToolchain`이 찾을 수 있는 시스템 경로에 설치합니다.
+3. `ClipperApp` 실행 대상(Target)을 선택하고 빌드/실행하면 기본 UI가 나타납니다.
+4. Spotlight 확장을 연동하려면 별도의 `Spotlight` Extension Target을 추가하고 `SpotlightBridge.notificationName`을 통해 URL을 전달하도록 구성합니다.
+
+### 테스트
+
+SwiftUI 및 AppKit 의존성으로 인해 Linux 환경에서는 테스트가 실행되지 않습니다. macOS 환경에서 `swift test` 또는 Xcode의 Test 동작을 사용해 `ClipperAppTests`를 실행할 수 있습니다.
